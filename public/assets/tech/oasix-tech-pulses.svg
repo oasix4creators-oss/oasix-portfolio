@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" fill="none">
+<!-- Animated overlay for oasix-tech-background-master.svg: short light pulses travel along the same
+     circuit traces and the end nodes blink. Same canvas, so it lines up when layered on the master. -->
+<style>
+  .p { stroke: #9bfff3; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 5 95; stroke-dashoffset: 105; animation: run 7s cubic-bezier(.45,0,.35,1) infinite; }
+  .p2 { animation-duration: 8.5s; animation-delay: -2.6s; }
+  .p3 { animation-duration: 6.4s; animation-delay: -4.8s; }
+  .p4 { animation-duration: 9.2s; animation-delay: -1.2s; }
+  .p5 { animation-duration: 7.6s; animation-delay: -5.9s; }
+  .p6 { animation-duration: 8.1s; animation-delay: -3.7s; }
+  .n { fill: #9bfff3; opacity: 0; animation: blink 7s ease-in-out infinite; }
+  @keyframes run { 0% { stroke-dashoffset: 105; opacity: 0; } 8% { opacity: 1; } 62% { opacity: 1; } 70% { stroke-dashoffset: 0; opacity: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+  @keyframes blink { 0%, 56% { opacity: 0; } 64% { opacity: .9; } 80%, 100% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .p, .n { animation: none; opacity: 0; } }
+</style>
+<defs><filter id="g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+<g filter="url(#g)">
+  <path class="p" pathLength="100" d="M0 150H210L250 110H380L420 150H570"/>
+  <path class="p p2" pathLength="100" d="M0 315H150L185 280H330L365 315H505L545 275H670"/>
+  <path class="p p3" pathLength="100" d="M1920 165H1720L1680 125H1540L1500 165H1360"/>
+  <path class="p p4" pathLength="100" d="M1920 420H1760L1710 370H1570L1530 410H1420L1380 370H1290"/>
+  <path class="p p5" pathLength="100" d="M0 905H250L300 855H470L520 905H760"/>
+  <path class="p p6" pathLength="100" d="M1920 880H1700L1650 830H1500L1450 880H1320"/>
+</g>
+<g>
+  <path class="p" pathLength="100" d="M0 150H210L250 110H380L420 150H570" stroke-width="1.2"/>
+  <path class="p p2" pathLength="100" d="M0 315H150L185 280H330L365 315H505L545 275H670" stroke-width="1.1"/>
+  <path class="p p3" pathLength="100" d="M1920 165H1720L1680 125H1540L1500 165H1360" stroke-width="1.2"/>
+  <path class="p p4" pathLength="100" d="M1920 420H1760L1710 370H1570L1530 410H1420L1380 370H1290" stroke-width="1.1"/>
+  <path class="p p5" pathLength="100" d="M0 905H250L300 855H470L520 905H760" stroke-width="1.15"/>
+  <path class="p p6" pathLength="100" d="M1920 880H1700L1650 830H1500L1450 880H1320" stroke-width="1.15"/>
+  <circle class="n" cx="570" cy="150" r="3.5"/>
+  <circle class="n" cx="670" cy="275" r="3" style="animation-duration:8.5s;animation-delay:-2.6s"/>
+  <circle class="n" cx="1360" cy="165" r="3.5" style="animation-duration:6.4s;animation-delay:-4.8s"/>
+  <circle class="n" cx="1290" cy="370" r="3" style="animation-duration:9.2s;animation-delay:-1.2s"/>
+  <circle class="n" cx="760" cy="905" r="3.2" style="animation-duration:7.6s;animation-delay:-5.9s"/>
+  <circle class="n" cx="1320" cy="880" r="3.2" style="animation-duration:8.1s;animation-delay:-3.7s"/>
+</g>
+</svg>

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" fill="none">
+<defs>
+  <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+    <path d="M48 0H0V48" stroke="#49C4B1" stroke-opacity=".035" stroke-width="1"/>
+  </pattern>
+  <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+    <feGaussianBlur stdDeviation="2.5"/>
+  </filter>
+</defs>
+
+<!-- Transparent background -->
+
+<g id="grid-fragments">
+  <rect x="0" y="0" width="620" height="260" fill="url(#grid)" opacity=".45"/>
+  <rect x="1320" y="70" width="600" height="300" fill="url(#grid)" opacity=".30"/>
+  <rect x="0" y="790" width="520" height="290" fill="url(#grid)" opacity=".24"/>
+</g>
+
+<g id="circuit-traces" stroke="#49C4B1" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M0 150H210L250 110H380L420 150H570" stroke-opacity=".16" stroke-width="1.5"/>
+  <path d="M0 315H150L185 280H330L365 315H505L545 275H670" stroke-opacity=".10" stroke-width="1.2"/>
+  <path d="M1920 165H1720L1680 125H1540L1500 165H1360" stroke-opacity=".15" stroke-width="1.5"/>
+  <path d="M1920 420H1760L1710 370H1570L1530 410H1420L1380 370H1290" stroke-opacity=".095" stroke-width="1.2"/>
+  <path d="M0 905H250L300 855H470L520 905H760" stroke-opacity=".11" stroke-width="1.25"/>
+  <path d="M1920 880H1700L1650 830H1500L1450 880H1320" stroke-opacity=".12" stroke-width="1.25"/>
+</g>
+
+<g fill="#49C4B1">
+  <circle cx="210" cy="150" r="4" fill-opacity=".22"/>
+  <circle cx="380" cy="110" r="4" fill-opacity=".22"/>
+  <circle cx="1720" cy="165" r="4" fill-opacity=".22"/>
+  <circle cx="1540" cy="125" r="4" fill-opacity=".22"/>
+  <circle cx="300" cy="855" r="4" fill-opacity=".20"/>
+  <circle cx="1650" cy="830" r="4" fill-opacity=".20"/>
+</g>
+
+<g id="dot-clusters" fill="#49C4B1" fill-opacity=".20">
+  <circle cx="92" cy="545" r="2"/><circle cx="116" cy="545" r="2"/><circle cx="140" cy="545" r="2"/><circle cx="92" cy="569" r="2"/><circle cx="116" cy="569" r="2"/><circle cx="140" cy="569" r="2"/><circle cx="92" cy="593" r="2"/><circle cx="116" cy="593" r="2"/><circle cx="140" cy="593" r="2"/>
+  <circle cx="1770" cy="630" r="2"/><circle cx="1794" cy="630" r="2"/><circle cx="1818" cy="630" r="2"/><circle cx="1770" cy="654" r="2"/><circle cx="1794" cy="654" r="2"/><circle cx="1818" cy="654" r="2"/><circle cx="1770" cy="678" r="2"/><circle cx="1794" cy="678" r="2"/><circle cx="1818" cy="678" r="2"/>
+</g>
+
+<g id="crosshairs" stroke="#49C4B1">
+  <g opacity=".20"><path d="M610 92H626M618 84V100"/><circle cx="618" cy="92" r="13" stroke-opacity=".08"/></g>
+  <g opacity=".17"><path d="M1280 720H1298M1289 711V729"/><circle cx="1289" cy="720" r="15" stroke-opacity=".07"/></g>
+  <g opacity=".14"><path d="M860 965H876M868 957V973"/></g>
+  <g opacity=".12"><path d="M1515 305H1529M1522 298V312"/></g>
+</g>
+
+<g id="glow-nodes" fill="#49C4B1">
+  <circle cx="420" cy="690" r="3" fill-opacity=".25" filter="url(#glow)"/>
+  <circle cx="1480" cy="735" r="3" fill-opacity=".23" filter="url(#glow)"/>
+  <circle cx="1660" cy="520" r="2.5" fill-opacity=".20" filter="url(#glow)"/>
+</g>
+
+<g id="digital-ticks" stroke="#49C4B1" stroke-opacity=".10" stroke-width="1">
+  <path d="M720 60h22M748 60h8M768 60h14"/>
+  <path d="M1140 1010h16M1164 1010h28M1200 1010h10"/>
+  <path d="M1200 180h10M1218 180h28M1254 180h16"/>
+  <path d="M520 1010h18M546 1010h10M564 1010h24"/>
+</g>
+</svg>
