@@ -18,7 +18,6 @@ const testimonials = [
 
 const featuredProjects = projects.slice(0, 3);
 
-const STORY_PANELS = ["About", "Services", "Projects", "Process"]; // order of the sideways panels
 const SERVICE_TILT_DEG = 5; // maximum tilt in each direction
 
 // Front: icon and title. Back: a one-line description. Hover or keyboard focus reveals the back;
@@ -68,14 +67,10 @@ function ServiceCard({ index, icon, title, description }: { index: number; icon:
 
 export default function HomeExperience() {
   const [testimonial, setTestimonial] = useState(0);
-  const horizontalRef = useRef<HTMLDivElement>(null);
-  const horizontalTrackRef = useRef<HTMLDivElement>(null);
-  const storyHudRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const media = gsap.matchMedia();
     const context = gsap.context(() => {
       // Headline lines rise out of a mask one after another, then the rest of the copy follows and a
       // single light sweep crosses "Digital Experiences". Reduced motion keeps the original simple fade.
@@ -105,137 +100,47 @@ export default function HomeExperience() {
           y: -90, opacity: 0, scale: 0.96, filter: "blur(10px)",
           scrollTrigger: { trigger: ".hero", start: "top top", end: "72% top", scrub: 0.8 },
         });
-        gsap.utils.toArray<HTMLElement>(".reveal").filter((element) => !element.closest(".horizontal-story")).forEach((element) => {
+        gsap.utils.toArray<HTMLElement>(".reveal").forEach((element) => {
           gsap.from(element, { y: 42, opacity: 0, duration: 0.9, ease: "power3.out", scrollTrigger: { trigger: element, start: "top 88%", once: true } });
         });
-      }
-
-      media.add("(max-width: 1080px) and (prefers-reduced-motion: no-preference)", () => {
-        gsap.utils.toArray<HTMLElement>(".horizontal-story .reveal").forEach((element) => {
-          gsap.from(element, { y: 42, opacity: 0, duration: 0.9, ease: "power3.out", scrollTrigger: { trigger: element, start: "top 88%", once: true } });
-        });
-        gsap.fromTo(".horizontal-story .service-card", { y: 38, opacity: 0 }, { y: 0, opacity: 1, clearProps: "transform", duration: 0.7, stagger: 0.07, ease: "power3.out", scrollTrigger: { trigger: ".services-grid", start: "top 82%", once: true } });
-        gsap.fromTo(".horizontal-story .project-card", { y: 44, opacity: 0 }, { y: 0, opacity: 1, clearProps: "transform", duration: 0.8, stagger: 0.12, ease: "power3.out", scrollTrigger: { trigger: ".projects-grid", start: "top 82%", once: true } });
-        gsap.from(".horizontal-story .process-step", { y: 25, opacity: 0, duration: 0.75, stagger: 0.15, ease: "power3.out", scrollTrigger: { trigger: ".process-grid", start: "top 80%", once: true } });
-      });
-
-      media.add("(min-width: 1081px) and (prefers-reduced-motion: no-preference)", () => {
-        const horizontal = horizontalRef.current;
-        const track = horizontalTrackRef.current;
-        if (!horizontal || !track) return;
-
-        horizontal.classList.add("is-horizontal-ready");
-        const getDistance = () => Math.max(0, track.scrollWidth - window.innerWidth);
-        const tween = gsap.to(track, {
-          x: () => -getDistance(),
-          ease: "none",
-          scrollTrigger: {
-            trigger: horizontal,
-            start: "top top",
-            end: () => `+=${getDistance()}`,
-            pin: true,
-            scrub: 0.9,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-          },
-        });
-
-        gsap.utils.toArray<HTMLElement>(".horizontal-story .reveal").forEach((element) => {
-          gsap.from(element, {
-            y: 42,
-            opacity: 0,
-            duration: 0.9,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: element,
-              containerAnimation: tween,
-              start: "left 84%",
-              once: true,
-            },
+        // Lateral reveals. The page itself only ever scrolls down; the sideways movement happens
+        // inside a section as it crosses the viewport, so the scroll axis never changes under the
+        // visitor. Each card gets its own scrubbed trigger, offset slightly, which is what produces
+        // the deal-in stagger. The offset is written to --enter-x rather than to `transform`, so it
+        // composes with the hover lift and the service-card tilt instead of fighting them.
+        const dealIn = (gridSelector: string, itemSelector: string, distance: number, step: number) => {
+          const grid = document.querySelector<HTMLElement>(gridSelector);
+          if (!grid) return;
+          const items = Array.from(grid.querySelectorAll<HTMLElement>(itemSelector));
+          items.forEach((item, index) => {
+            const state = { amount: 1 };
+            const write = () => {
+              item.style.setProperty("--enter-x", `${(state.amount * distance).toFixed(1)}px`);
+              item.style.setProperty("--enter-o", (1 - state.amount).toFixed(3));
+            };
+            write();
+            gsap.to(state, {
+              amount: 0,
+              ease: "power2.out",
+              onUpdate: write,
+              scrollTrigger: {
+                trigger: grid,
+                start: () => `top ${92 - index * step}%`,
+                end: () => `top ${52 - index * step}%`,
+                scrub: 0.75,
+                invalidateOnRefresh: true,
+              },
+            });
           });
-        });
-        // Explicit end state, and the inline transform is cleared afterwards, so the cards always
-        // settle at their true grid position and the CSS hover/tilt transforms can take over.
-        gsap.fromTo(".horizontal-story .service-card", { y: 38, opacity: 0 }, {
-          y: 0,
-          opacity: 1,
-          clearProps: "transform",
-          duration: 0.7,
-          stagger: 0.07,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".services-grid",
-            containerAnimation: tween,
-            start: "left 78%",
-            once: true,
-          },
-        });
-        gsap.fromTo(".horizontal-story .project-card", { y: 44, opacity: 0 }, {
-          y: 0,
-          opacity: 1,
-          clearProps: "transform",
-          duration: 0.8,
-          stagger: 0.12,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".projects-grid",
-            containerAnimation: tween,
-            start: "left 78%",
-            once: true,
-          },
-        });
-        gsap.from(".horizontal-story .process-step", {
-          y: 25,
-          opacity: 0,
-          duration: 0.75,
-          stagger: 0.15,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".process-grid",
-            containerAnimation: tween,
-            start: "left 76%",
-            once: true,
-          },
-        });
-
-        const panelIds = ["about", "services", "projects", "process"];
-        const goToPanel = (id: string, smooth = true) => {
-          const index = panelIds.indexOf(id);
-          const trigger = tween.scrollTrigger;
-          if (index < 0 || !trigger) return;
-          const progress = index / (panelIds.length - 1);
-          window.scrollTo({ top: trigger.start + (trigger.end - trigger.start) * progress, behavior: smooth ? "smooth" : "auto" });
         };
-
-        const onAnchorClick = (event: MouseEvent) => {
-          const anchor = (event.target as Element | null)?.closest<HTMLAnchorElement>("a");
-          const href = anchor?.getAttribute("href");
-          if (!href) return;
-          const url = new URL(href, window.location.href);
-          if (url.pathname !== window.location.pathname || !url.hash) return;
-          const id = url.hash.slice(1);
-          if (!panelIds.includes(id)) return;
-          event.preventDefault();
-          window.history.replaceState(null, "", `#${id}`);
-          goToPanel(id);
-        };
-
-        document.addEventListener("click", onAnchorClick);
-        requestAnimationFrame(() => {
-          ScrollTrigger.refresh();
-          const initialId = window.location.hash.slice(1);
-          if (panelIds.includes(initialId)) goToPanel(initialId, false);
-        });
-
-        return () => {
-          document.removeEventListener("click", onAnchorClick);
-          horizontal.classList.remove("is-horizontal-ready");
-        };
-      });
+        dealIn(".services-grid", ".service-card", 110, 3);
+        dealIn(".projects-grid", ".project-card", 130, 5);
+        dealIn(".process-grid", ".process-step", 80, 3);
+      }
 
       return () => window.removeEventListener("oasix:loader-complete", playHeroEntrance);
     });
-    return () => { media.revert(); context.revert(); };
+    return () => context.revert();
   }, []);
 
   // Service icons draw themselves in, card by card, the first time the grid comes into view.
@@ -251,50 +156,9 @@ export default function HomeExperience() {
     return () => observer.disconnect();
   }, []);
 
-  // Panel counter for the sideways section: reads how far the track has actually moved.
-  useEffect(() => {
-    const horizontal = horizontalRef.current;
-    const track = horizontalTrackRef.current;
-    const hud = storyHudRef.current;
-    if (!horizontal || !track || !hud) return;
-    const current = hud.querySelector<HTMLElement>(".story-hud__current");
-    const label = hud.querySelector<HTMLElement>(".story-hud__label");
-    let shown = -1;
-    let frame = 0;
-    let running = false;
-
-    const update = () => {
-      if (horizontal.classList.contains("is-horizontal-ready")) {
-        const distance = track.scrollWidth - horizontal.clientWidth;
-        const moved = horizontal.getBoundingClientRect().left - track.getBoundingClientRect().left;
-        const progress = distance > 0 ? Math.min(1, Math.max(0, moved / distance)) : 0;
-        const index = Math.round(progress * (STORY_PANELS.length - 1));
-        hud.style.setProperty("--story-progress", progress.toFixed(4));
-        if (index !== shown && current && label) {
-          shown = index;
-          current.textContent = String(index + 1).padStart(2, "0");
-          label.textContent = STORY_PANELS[index];
-          hud.classList.remove("is-changing");
-          void hud.offsetWidth; // restart the label animation
-          hud.classList.add("is-changing");
-        }
-      }
-      if (running) frame = window.requestAnimationFrame(update);
-    };
-
-    const observer = new IntersectionObserver(([entry]) => {
-      running = entry.isIntersecting;
-      hud.classList.toggle("is-visible", entry.isIntersecting && entry.intersectionRatio > 0.6);
-      window.cancelAnimationFrame(frame);
-      if (running) frame = window.requestAnimationFrame(update);
-    }, { threshold: [0, 0.6, 1] });
-    observer.observe(horizontal);
-    return () => { running = false; window.cancelAnimationFrame(frame); observer.disconnect(); };
-  }, []);
-
   // Process line: the fill follows scroll position and each step powers on as the fill reaches it.
-  // Progress is read from where the section actually is on screen, so it works for the pinned
-  // sideways scroll on desktop and for normal vertical scrolling on smaller screens.
+  // Progress is read from where the section actually is on screen, so the same code covers the
+  // horizontal line on wide screens and the vertical one on narrow screens.
   useEffect(() => {
     const grid = document.querySelector<HTMLElement>(".process-grid");
     const section = grid?.closest<HTMLElement>(".process");
@@ -323,10 +187,6 @@ export default function HomeExperience() {
     const measure = () => {
       const lineRect = line.getBoundingClientRect();
       if (lineRect.height > lineRect.width) return clamp((window.innerHeight * 0.7 - lineRect.top) / lineRect.height);
-      if (section.closest(".is-horizontal-ready")) {
-        const left = section.getBoundingClientRect().left;
-        return clamp((window.innerWidth * 0.72 - left) / (window.innerWidth * 0.68));
-      }
       return clamp((window.innerHeight * 0.85 - grid.getBoundingClientRect().top) / (window.innerHeight * 0.45));
     };
 
@@ -396,15 +256,6 @@ export default function HomeExperience() {
           <div className="scroll-cue"><span>SCROLL</span><i /></div>
         </section>
 
-        <div className="horizontal-story" ref={horizontalRef}>
-          {/* Desktop only: shows which sideways panel you are on and how far through the set. */}
-          <div className="story-hud" ref={storyHudRef} aria-hidden="true">
-            <b className="story-hud__current">01</b>
-            <span className="story-hud__bar"><i /></span>
-            <span className="story-hud__total">{String(STORY_PANELS.length).padStart(2, "0")}</span>
-            <em className="story-hud__label">{STORY_PANELS[0]}</em>
-          </div>
-          <div className="horizontal-story__track" ref={horizontalTrackRef}>
         <section className="section about" id="about" data-section="about">
           <TechBackground variant="about" />
           <div className="shell about__grid">
@@ -472,8 +323,6 @@ export default function HomeExperience() {
             </div>
           </div>
         </section>
-          </div>
-        </div>
 
         <section className="section testimonials" data-section="testimonials">
           <TechBackground variant="testimonials" />

@@ -58,6 +58,10 @@ export function TransitionLink({ href, children, className = "", ariaLabel }: { 
   );
 }
 
+// Sections that have a link in the bar. Anything else on the page (the testimonials band, for
+// one) must not take the underline away from the section the visitor is actually reading.
+const navIds = new Set(["home", "about", "services", "projects", "process", "contact"]);
+
 export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -72,12 +76,48 @@ export function Navbar() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     if (pathname === "/") {
-      const sections = Array.from(document.querySelectorAll<HTMLElement>("[data-section]"));
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => entry.isIntersecting && setActive((entry.target as HTMLElement).dataset.section ?? "home"));
-      }, { rootMargin: "-42% 0px -50% 0px", threshold: 0 });
-      sections.forEach((section) => observer.observe(section));
-      return () => { window.removeEventListener("scroll", onScroll); observer.disconnect(); };
+      // The active link is worked out by measurement rather than by IntersectionObserver order.
+      // Two sections can sit on the reading line at once — most obviously while the sideways
+      // story slides one panel out and the next one in — and an observer callback would simply
+      // apply whichever entry happened to come last, which is how the underline used to jump a
+      // section ahead. Here the panel that actually fills most of the screen wins.
+      const sections = Array.from(document.querySelectorAll<HTMLElement>("[data-section]"))
+        .filter((section) => navIds.has(section.dataset.section ?? ""));
+      let frame = 0;
+
+      const measure = () => {
+        frame = 0;
+        const line = window.innerHeight * 0.45;
+        let bestId = "";
+        let bestWidth = 0;
+        for (const section of sections) {
+          const id = section.dataset.section ?? "";
+          const rect = section.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) continue;
+          // Panels parked off to the side of the sideways story are not on screen.
+          const visible = Math.min(rect.right, window.innerWidth) - Math.max(rect.left, 0);
+          if (visible <= 1) continue;
+          if (rect.top > line || rect.bottom <= line) continue;
+          if (visible > bestWidth) { bestWidth = visible; bestId = id; }
+        }
+        if (bestId) setActive(bestId);
+      };
+      const scheduleMeasure = () => { if (!frame) frame = window.requestAnimationFrame(measure); };
+
+      scheduleMeasure();
+      window.addEventListener("scroll", scheduleMeasure, { passive: true });
+      window.addEventListener("resize", scheduleMeasure, { passive: true });
+      window.addEventListener("oasix:loader-complete", scheduleMeasure);
+      const settle = window.setTimeout(scheduleMeasure, 600);
+
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("scroll", scheduleMeasure);
+        window.removeEventListener("resize", scheduleMeasure);
+        window.removeEventListener("oasix:loader-complete", scheduleMeasure);
+        window.clearTimeout(settle);
+        window.cancelAnimationFrame(frame);
+      };
     }
     return () => window.removeEventListener("scroll", onScroll);
   }, [pathname]);
@@ -180,6 +220,19 @@ export function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+// Case studies are often opened straight from a share link, so they need their own way out
+// rather than relying on the browser's back button or the bar at the top.
+export function CaseBack() {
+  return (
+    <div className="case-back shell">
+      <TransitionLink href="/" className="case-back__link" ariaLabel="Back to the home page">
+        <span aria-hidden="true">←</span> Back to home
+      </TransitionLink>
+      <TransitionLink href="/projects" className="case-back__all">All projects</TransitionLink>
+    </div>
   );
 }
 

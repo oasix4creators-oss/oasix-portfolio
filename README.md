@@ -2,15 +2,15 @@
 
 Final source code for the dark OASIX portfolio website.
 
-Version 1.0.0. Live site: to be updated with the final domain.
+Version 1.1.0. Live site: to be updated with the final Netlify address.
 
 ## Stack
 
 - React 19 and TypeScript
-- Next.js-compatible App Router through Vinext/Vite
+- Next.js 16 App Router
 - GSAP animations
 - CSS glassmorphism, responsive layouts, and custom motion effects
-- Cloudflare Workers/Sites-compatible production build
+- Static export, deployed on Netlify
 
 ## Features (v1)
 
@@ -45,14 +45,25 @@ Open the local URL printed in the terminal.
 
 ```bash
 npm run build
+```
+
+`next build` writes the whole pre-rendered site to `out/`. To check it the way Netlify
+serves it:
+
+```bash
 npm run start
 ```
 
-## Validation
+## Deployment
 
-```bash
-npm test
-```
+Netlify, from the GitHub repository. The settings live in `netlify.toml`:
+
+- Build command: `npm run build`
+- Publish directory: `out`
+- Node version: 22
+
+The site is a static export, so the deploy has no serverless functions behind it. The
+contact form posts straight from the browser to Web3Forms.
 
 ## Main files
 
@@ -83,9 +94,3 @@ The hero orb is implemented with four synchronized CSS glow layers:
 
 `HeroGlassCircle.tsx` calculates the pointer angle with `atan2()` and uses GSAP
 to interpolate the glow around the circumference with inertia.
-
-## Deployment note
-
-`.openai/hosting.json` identifies the existing hosted OASIX Site. Keep it when
-updating that deployment. Remove or replace its `project_id` only when setting
-up a completely separate hosting project.

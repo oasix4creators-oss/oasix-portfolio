@@ -73,13 +73,8 @@ export default function SiteCursor() {
     };
     const wake = () => { if (!frame) frame = window.requestAnimationFrame(render); };
 
-    const onMove = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse") return;
-      pointerX = event.clientX;
-      pointerY = event.clientY;
-      if (!seen) { seen = true; ringX = pointerX; ringY = pointerY; }
-
-      const element = event.target instanceof Element ? event.target : null;
+    // Works out the ring's state and magnetic pull from whatever sits under the pointer right now.
+    const applyTo = (element: Element | null) => {
       targetX = pointerX;
       targetY = pointerY;
       if (element?.closest(TEXT_ENTRY)) {
@@ -101,23 +96,54 @@ export default function SiteCursor() {
       }
       wake();
     };
+
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      if (!seen) { seen = true; ringX = pointerX; ringY = pointerY; }
+      applyTo(event.target instanceof Element ? event.target : null);
+    };
+
+    // The page moves under a still mouse all the time here — the wheel, the sideways story, the
+    // loader finishing, an overlay opening or closing. Without this the ring keeps the shape and
+    // the magnetic offset of whatever used to be under the pointer, so it sits beside the dot
+    // over plain text, or stays small on top of a button.
+    let recheckFrame = 0;
+    const recheck = () => {
+      recheckFrame = 0;
+      if (!seen) return;
+      applyTo(document.elementFromPoint(pointerX, pointerY));
+    };
+    const scheduleRecheck = () => { if (!recheckFrame) recheckFrame = window.requestAnimationFrame(recheck); };
+
     const hide = () => setState("hidden");
+    const release = () => { root.classList.remove("is-pressed"); pressTarget = 1; wake(); };
     const onDown = () => { root.classList.add("is-pressed"); pressTarget = 0.82; wake(); };
-    const onUp = () => { root.classList.remove("is-pressed"); pressTarget = 1; wake(); };
+    const onBlur = () => { release(); hide(); };
 
     document.addEventListener("pointermove", onMove, { passive: true });
     document.addEventListener("pointerdown", onDown);
-    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointerup", release);
+    document.addEventListener("pointercancel", release);
+    window.addEventListener("scroll", scheduleRecheck, { passive: true });
+    window.addEventListener("resize", scheduleRecheck, { passive: true });
+    window.addEventListener("oasix:loader-complete", scheduleRecheck);
     html.addEventListener("pointerleave", hide);
-    window.addEventListener("blur", hide);
+    window.addEventListener("blur", onBlur);
 
     return () => {
       window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(recheckFrame);
       document.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerdown", onDown);
-      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("pointerup", release);
+      document.removeEventListener("pointercancel", release);
+      window.removeEventListener("scroll", scheduleRecheck);
+      window.removeEventListener("resize", scheduleRecheck);
+      window.removeEventListener("oasix:loader-complete", scheduleRecheck);
       html.removeEventListener("pointerleave", hide);
-      window.removeEventListener("blur", hide);
+      window.removeEventListener("blur", onBlur);
       html.classList.remove("has-site-cursor");
     };
   }, []);

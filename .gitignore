@@ -35,14 +35,11 @@ yarn-error.log*
 
 # typescript
 next-env.d.ts
-/dist/
-/.wrangler/
-/.sites-runtime/
+
+# netlify
+.netlify
+
+# local build output and working files
 /outputs/
 /work/
-
-# local runtime and build output
-/dist
-/.sites-runtime
-/.wrangler
 /design-reference

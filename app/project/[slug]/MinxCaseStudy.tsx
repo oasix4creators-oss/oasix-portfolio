@@ -1,7 +1,6 @@
 import type { Project } from "../../data";
 import { ArrowIcon } from "../../components/Brand";
-import { SiteFrame, TransitionLink } from "../../components/SiteChrome";
-import CaseIndex from "../../components/CaseIndex";
+import { CaseBack, SiteFrame, TransitionLink } from "../../components/SiteChrome";
 
 // Everything below describes what is on the live site (minx-in-motion.netlify.app) or what the
 // project brief contained. Nothing here claims client results or a technology stack that isn't confirmed.
@@ -44,7 +43,7 @@ export default function MinxCaseStudy({ project, next }: { project: Project; nex
   return (
     <SiteFrame>
       <main className="case-study case-study--zypp case-study--minx" id="home">
-        <CaseIndex />
+        <CaseBack />
         <section className="case-hero shell">
           <div className="case-hero__copy">
             <p className="eyebrow">PORTFOLIO WEBSITE · INTERACTIVE FILM PORTFOLIO</p>

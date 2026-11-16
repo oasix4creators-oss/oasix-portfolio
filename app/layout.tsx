@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import SiteLoader from "./components/SiteLoader";
 import CustomScrollbar from "./components/CustomScrollbar";
+import SectionRail from "./components/SectionRail";
 import DecodeLabels from "./components/DecodeLabels";
 import SiteCursor from "./components/SiteCursor";
 import CaseImageZoom from "./components/CaseImageZoom";
@@ -32,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="site-loading"><SiteLoader /><CustomScrollbar /><DecodeLabels />{children}<CaseImageZoom /><CommandPalette /><ProjectBrief /><Toast /><SiteCursor /></body>
+      <body className="site-loading"><SiteLoader /><CustomScrollbar /><SectionRail /><DecodeLabels />{children}<CaseImageZoom /><CommandPalette /><ProjectBrief /><Toast /><SiteCursor /></body>
     </html>
   );
 }

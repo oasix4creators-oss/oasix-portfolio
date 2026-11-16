@@ -28,12 +28,12 @@ export default function ProjectsExperience() {
   return (
     <SiteFrame>
       <main className="inner-page" id="home">
-        <section className="archive-hero shell">
+        <section className="archive-hero shell" data-index="Overview">
           <p className="eyebrow">SELECTED WORK — 2023/26</p>
           <h1>Systems, stores and<br /><span>digital experiences.</span></h1>
           <p>A collection of projects shaped around real business needs, clear user journeys and dependable technology.</p>
         </section>
-        <section className="archive shell" aria-label="Projects archive">
+        <section className="archive shell" aria-label="Projects archive" data-index="All projects">
           {/* A filter bar is only useful once projects span more than one category. */}
           {filters.length > 2 && <div className="filter-bar" role="group" aria-label="Filter projects">
             {filters.map((item) => <button key={item} className={filter === item ? "active" : ""} onClick={() => setFilter(item)}>{item}</button>)}

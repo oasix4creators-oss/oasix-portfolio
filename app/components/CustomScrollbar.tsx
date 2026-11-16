@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { activeSection, readSections, type Entry } from "./SectionRail";
 
 type ScrollMetrics = {
   maxScroll: number;
@@ -20,11 +21,44 @@ export default function CustomScrollbar() {
   const draggingRef = useRef(false);
   const dragStartRef = useRef({ pointerY: 0, thumbY: 0 });
   const metricsRef = useRef<ScrollMetrics>({ maxScroll: 0, maxThumbY: 0, progress: 0, thumbHeight: 72 });
+  const readoutRef = useRef<HTMLDivElement>(null);
+  const sectionsRef = useRef<Entry[]>([]);
 
   useEffect(() => {
     const rail = railRef.current;
     const thumb = thumbRef.current;
     if (!rail || !thumb) return;
+
+    // Telemetry beside the bar: how far down the page you are, which section you are in, and how
+    // many there are. The count is only shown when the page actually declares its sections, so it
+    // never claims a total it made up.
+    const readout = readoutRef.current;
+    const percentOut = readout?.querySelector<HTMLElement>(".scroll-readout__percent");
+    const countOut = readout?.querySelector<HTMLElement>(".scroll-readout__count");
+    const labelOut = readout?.querySelector<HTMLElement>(".scroll-readout__label");
+    let shownIndex = -1;
+    const recount = () => { sectionsRef.current = readSections(); shownIndex = -1; };
+    recount();
+
+    const writeReadout = (progress: number) => {
+      if (percentOut) percentOut.textContent = `${Math.round(progress * 100)}%`;
+      const entries = sectionsRef.current;
+      if (!entries.length) {
+        if (countOut) countOut.textContent = "";
+        if (labelOut) labelOut.textContent = "";
+        return;
+      }
+      const index = activeSection(entries);
+      if (index === shownIndex) return;
+      shownIndex = index;
+      if (countOut) countOut.textContent = `${String(index + 1).padStart(2, "0")} / ${String(entries.length).padStart(2, "0")}`;
+      if (labelOut) {
+        labelOut.textContent = entries[index].label;
+        labelOut.classList.remove("is-changing");
+        void labelOut.offsetWidth; // restart the swap animation
+        labelOut.classList.add("is-changing");
+      }
+    };
 
     const update = () => {
       frameRef.current = 0;
@@ -46,6 +80,8 @@ export default function CustomScrollbar() {
       thumb.style.transform = `translate3d(-50%, ${thumbY}px, 0)`;
       rail.setAttribute("aria-valuenow", String(Math.round(progress * 100)));
       rail.classList.toggle("custom-scrollbar--inactive", maxScroll <= 1);
+      readout?.classList.toggle("is-inactive", maxScroll <= 1);
+      writeReadout(progress);
     };
 
     const scheduleUpdate = () => {
@@ -59,6 +95,14 @@ export default function CustomScrollbar() {
     window.addEventListener("resize", scheduleUpdate, { passive: true });
     window.addEventListener("load", scheduleUpdate, { once: true });
     window.addEventListener("oasix:loader-complete", scheduleUpdate);
+    const onReady = () => { recount(); scheduleUpdate(); };
+    window.addEventListener("oasix:loader-complete", onReady);
+    const recountTimer = window.setTimeout(onReady, 600);
+    // Late-arriving images and fonts change the page height after the first measurement, and a
+    // pinned section adds its spacer after that again. Each of those makes the thumb's travel
+    // wrong — or, when the first measurement saw a page that did not scroll yet, parks it.
+    window.addEventListener("load", scheduleUpdate, { capture: true });
+    document.fonts?.ready.then(scheduleUpdate).catch(() => {});
 
     scheduleUpdate();
     const routeFrame = window.requestAnimationFrame(scheduleUpdate);
@@ -69,6 +113,9 @@ export default function CustomScrollbar() {
       window.removeEventListener("scroll", scheduleUpdate);
       window.removeEventListener("resize", scheduleUpdate);
       window.removeEventListener("oasix:loader-complete", scheduleUpdate);
+      window.removeEventListener("oasix:loader-complete", onReady);
+      window.clearTimeout(recountTimer);
+      window.removeEventListener("load", scheduleUpdate, { capture: true });
       window.cancelAnimationFrame(frameRef.current);
       window.cancelAnimationFrame(routeFrame);
       window.clearTimeout(routeTimer);
@@ -128,6 +175,12 @@ export default function CustomScrollbar() {
   };
 
   return (
+    <>
+    <div className="scroll-readout" ref={readoutRef} aria-hidden="true">
+      <b className="scroll-readout__percent">0%</b>
+      <span className="scroll-readout__count" />
+      <em className="scroll-readout__label" />
+    </div>
     <div
       ref={railRef}
       className="custom-scrollbar"
@@ -177,5 +230,6 @@ export default function CustomScrollbar() {
         onPointerCancel={releaseDrag}
       />
     </div>
+    </>
   );
 }

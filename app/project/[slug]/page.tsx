@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowIcon } from "../../components/Brand";
-import { SiteFrame, TransitionLink } from "../../components/SiteChrome";
+import { CaseBack, SiteFrame, TransitionLink } from "../../components/SiteChrome";
 import { projects } from "../../data";
 import MinxCaseStudy from "./MinxCaseStudy";
-import CaseIndex from "../../components/CaseIndex";
 
 const customerFeatures = [
   "Promotional banners, featured categories and best sellers",
@@ -79,7 +78,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
     return (
       <SiteFrame>
         <main className="case-study case-study--zypp" id="home">
-          <CaseIndex />
+          <CaseBack />
           <section className="case-hero shell">
             <div className="case-hero__copy">
               <p className="eyebrow">E-COMMERCE · CUSTOM CMS · BUSINESS MANAGEMENT</p>
@@ -250,7 +249,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
   return (
     <SiteFrame>
       <main className="case-study" id="home">
-        <CaseIndex />
+        <CaseBack />
         <section className="case-hero shell">
           <div className="case-hero__copy">
             <p className="eyebrow">{project.category} — CASE STUDY</p>

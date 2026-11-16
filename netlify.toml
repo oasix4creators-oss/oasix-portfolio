@@ -1,0 +1,22 @@
+# Netlify build settings for the OASIX Web Studio portfolio.
+# The site is a Next.js static export: `next build` writes pre-rendered HTML to `out/`, and
+# Netlify serves that folder directly. No serverless functions and no Next.js runtime.
+
+[build]
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# The export writes the 404 page as 404.html; Netlify serves it for unknown paths automatically.
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

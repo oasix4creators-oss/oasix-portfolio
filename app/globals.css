@@ -16,9 +16,13 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; background: var(--bg); scrollbar-width: none; -ms-overflow-style: none; }
+/* overflow-x: clip rather than hidden. hidden on the page turns it into a scroll container, so a
+   single element a few pixels too wide gives the home page a second, sideways scroll of its own.
+   clip stops that overflow without creating the container, leaving vertical scrolling, sticky
+   positioning and the pinned sideways story to behave as before. */
+html { scroll-behavior: smooth; background: var(--bg); scrollbar-width: none; -ms-overflow-style: none; overflow-x: clip; }
 html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
-body { margin: 0; background: var(--bg); color: var(--white); font-family: var(--font-tech); overflow-x: hidden; font-size: 1.0625rem; font-weight: 400; letter-spacing: .005em; }
+body { margin: 0; background: var(--bg); color: var(--white); font-family: var(--font-tech); overflow-x: clip; font-size: 1.0625rem; font-weight: 400; letter-spacing: .005em; }
 body.site-loading { overflow: hidden; }
 body.site-loading .navbar { opacity: 0; transform: translateY(-10px); }
 body.site-loading .hero-glass { opacity: 0; pointer-events: none; }
@@ -39,6 +43,20 @@ body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-i
 .custom-scrollbar-dragging { user-select: none; cursor: grabbing; }
 html.custom-scrollbar-dragging { scroll-behavior: auto !important; }
 body.site-loading .custom-scrollbar { opacity: 0; pointer-events: none; }
+
+/* Scroll telemetry (components/CustomScrollbar.tsx). Sits beside the bar and reads out position,
+   section number and section name instead of being a plain scrollbar. Desktop only — narrow
+   screens have no margin to put it in. */
+.scroll-readout { display: none; }
+@media (min-width: 1081px) {
+  .scroll-readout { position: fixed; z-index: 80; right: 34px; top: 50%; display: flex; flex-direction: column; align-items: flex-end; gap: .34rem; color: #5d7276; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .62rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; pointer-events: none; transform: translateY(-50%); transition: opacity .3s ease; }
+  .scroll-readout.is-inactive { opacity: 0; }
+  .scroll-readout__percent { color: var(--teal-bright); font-size: .8rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+  .scroll-readout__count { font-variant-numeric: tabular-nums; }
+  .scroll-readout__label { max-width: 15ch; overflow: hidden; color: #a9b8bb; font-style: normal; text-overflow: ellipsis; }
+  .scroll-readout__label.is-changing { animation: storyHudSwap .45s cubic-bezier(.2,.75,.25,1); }
+}
+body.site-loading .scroll-readout { opacity: 0; }
 
 .site-loader { position: fixed; z-index: 99999; inset: 0; width: 100%; height: 100vh; height: 100svh; overflow: hidden; background: #050b0e; isolation: isolate; }
 .site-loader::before { content: ""; position: absolute; z-index: -1; inset: 0; background: radial-gradient(circle at 50% 42%, rgba(73,196,177,.075), transparent 20%), radial-gradient(circle at 50% 95%, rgba(34,229,208,.045), transparent 33%); }
@@ -148,17 +166,15 @@ main, footer { position: relative; z-index: 2; }
 .section::after { content: "+"; position: absolute; right: 3.5vw; top: 16%; color: rgba(33,230,211,.32); font-size: 1.1rem; font-weight: 200; text-shadow: -42vw 23vh rgba(33,230,211,.2), -15vw 56vh rgba(33,230,211,.2); }
 .section > .shell, .footer > .shell { position: relative; z-index: 1; }
 .section::before, .section::after, .footer::before { content: none; }
-.horizontal-story, .horizontal-story__track { position: relative; }
-/* Panel counter for the sideways section. Sits in the left margin, reading bottom to top. */
-.story-hud { display: none; }
-.horizontal-story.is-horizontal-ready .story-hud { position: absolute; z-index: 6; left: clamp(20px, 2.1vw, 38px); top: 50%; display: flex; align-items: center; gap: .8rem; color: #5d7276; font-size: .66rem; font-weight: 600; letter-spacing: .16em; white-space: nowrap; opacity: 0; transform: translate(-50%, -50%) rotate(-90deg); transition: opacity .4s ease; pointer-events: none; }
-.horizontal-story.is-horizontal-ready .story-hud.is-visible { opacity: 1; }
-.story-hud__current { min-width: 1.5em; color: var(--teal-bright); font-weight: 700; font-variant-numeric: tabular-nums; }
-.story-hud__total { font-variant-numeric: tabular-nums; }
-.story-hud__bar { position: relative; display: block; width: 84px; height: 1px; background: rgba(133,179,182,.24); }
-.story-hud__bar i { position: absolute; inset: 0; background: var(--teal-bright); box-shadow: 0 0 8px rgba(33,230,211,.6); transform: scaleX(var(--story-progress, 0)); transform-origin: left; }
-.story-hud__label { min-width: 6.2em; color: #a9b8bb; font-style: normal; text-transform: uppercase; }
-.story-hud.is-changing .story-hud__current, .story-hud.is-changing .story-hud__label { animation: storyHudSwap .45s cubic-bezier(.2,.75,.25,1); }
+/* An anchored section used to land with its heading tucked under the fixed bar. */
+.section[id], .footer[id], main[id] { scroll-margin-top: 96px; }
+/* Scrubbed lateral entrance. GSAP writes --enter-x / --enter-o as a card crosses the viewport
+   (HomeExperience.tsx). The offset lives in the `translate` property, not in `transform`, so the
+   hover lift and the service-card tilt keep working on top of it. No JS means no custom property,
+   and the fallbacks leave every card in place and fully visible. */
+.services-grid .service-card,
+.projects-grid .project-card,
+.process-grid .process-step { translate: var(--enter-x, 0) 0; opacity: var(--enter-o, 1); }
 @keyframes storyHudSwap { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
 .tech-background { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .tech-background__asset { position: absolute; display: block; max-width: none; width: 112%; height: 108%; left: -6%; top: -4%; object-fit: cover; object-position: center; opacity: .52; user-select: none; }
@@ -506,6 +522,15 @@ body.menu-open .custom-scrollbar { opacity: 0; pointer-events: none; }
 .empty-state { grid-column: 1/-1; display: grid; place-items: center; min-height: 340px; border: 1px solid var(--line); border-radius: 12px; text-align: center; align-content: center; }
 .empty-state h2 { font-size: 2rem; }
 
+/* Case-study escape hatch (components/SiteChrome.tsx → CaseBack): these pages are usually opened
+   from a shared link, with no history to go back through. */
+.case-back { display: flex; align-items: center; gap: 1rem; padding-top: .5rem; }
+.case-back__link, .case-back__all { display: inline-flex; align-items: center; gap: .55rem; color: #9fb3b6; font-size: .76rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; text-decoration: none; transition: color .25s ease; }
+.case-back__link span { display: inline-block; transition: transform .25s ease; }
+.case-back__link:hover span, .case-back__link:focus-visible span { transform: translateX(-4px); }
+.case-back__link:hover, .case-back__all:hover, .case-back__link:focus-visible, .case-back__all:focus-visible { color: var(--teal-bright); }
+.case-back__all { padding-left: 1.05rem; border-left: 1px solid rgba(127,174,179,.22); color: #6d8488; }
+.case-back + .case-hero { padding-top: clamp(3rem, 6vw, 5.5rem); }
 .case-hero { display: grid; grid-template-columns: 1.25fr .75fr; gap: 7vw; align-items: end; padding: clamp(6rem,10vw,10rem) 0 5rem; }
 .case-hero h1 { max-width: 900px; margin-bottom: 1.6rem; font-size: clamp(3.7rem,7.5vw,8rem); line-height: .92; }
 .case-hero__copy > p:last-child { max-width: 640px; font-size: 1.08rem; }
@@ -563,24 +588,31 @@ body.menu-open .custom-scrollbar { opacity: 0; pointer-events: none; }
 @media (min-width: 1081px) {
   .case-study--zypp:not(.case-study--minx) .case-feature-strip { grid-template-columns: repeat(5,1fr); }
 }
-/* Case-study section index (components/CaseIndex.tsx). Desktop only. */
-.case-index-rail { display: none; }
+/* The spine (components/SectionRail.tsx). One rail for every page, desktop only: a line that
+   fills as you descend, with a node per section. Labels stay out of the way until the rail is
+   hovered or focused; the current one is always named. */
+.spine-rail { display: none; }
 @media (min-width: 1081px) {
-  .case-index-rail { position: fixed; z-index: 40; left: 0; top: 50%; display: block; width: 46px; height: 300px; opacity: 0; pointer-events: none; transform: translateY(-50%); transition: opacity .4s ease; }
-  .case-index-rail.is-visible { opacity: 1; pointer-events: auto; }
-  .case-index-rail__hud { position: absolute; left: 50%; top: 50%; display: flex; align-items: center; gap: .8rem; color: #5d7276; font-size: .64rem; font-weight: 600; letter-spacing: .16em; white-space: nowrap; transform: translate(-50%, -50%) rotate(-90deg); transition: opacity .25s ease; }
-  .case-index-rail__hud b { color: var(--teal-bright); font-weight: 700; font-variant-numeric: tabular-nums; }
-  .case-index-rail__bar { position: relative; display: block; width: 70px; height: 1px; background: rgba(133,179,182,.24); }
-  .case-index-rail__bar i { position: absolute; inset: 0; background: var(--teal-bright); box-shadow: 0 0 8px rgba(33,230,211,.6); transform: scaleX(var(--case-progress, 0)); transform-origin: left; }
-  .case-index-rail__hud em { min-width: 9em; color: #a9b8bb; font-style: normal; text-transform: uppercase; animation: storyHudSwap .45s cubic-bezier(.2,.75,.25,1); }
-  .case-index-rail__panel { position: absolute; left: 22px; top: 50%; min-width: 230px; margin: 0; padding: .7rem; list-style: none; border: 1px solid var(--line); border-radius: 10px; background: rgba(4,11,14,.94); box-shadow: 0 20px 60px rgba(0,0,0,.45); backdrop-filter: blur(14px); opacity: 0; visibility: hidden; transform: translate(-8px, -50%); transition: opacity .25s ease, transform .3s cubic-bezier(.2,.75,.25,1), visibility 0s .3s; }
-  .case-index-rail:is(:hover, :focus-within) .case-index-rail__panel { opacity: 1; visibility: visible; transform: translate(0, -50%); transition: opacity .25s ease, transform .3s cubic-bezier(.2,.75,.25,1), visibility 0s; }
-  .case-index-rail:is(:hover, :focus-within) .case-index-rail__hud { opacity: 0; }
-  .case-index-rail__panel button { display: flex; align-items: baseline; gap: .8rem; width: 100%; padding: .48rem .6rem; border: 0; border-radius: 6px; background: transparent; color: #9fb0b3; font: inherit; font-size: .84rem; text-align: left; cursor: pointer; transition: background .2s ease, color .2s ease; }
-  .case-index-rail__panel button span { color: #5d7276; font-size: .66rem; font-weight: 700; letter-spacing: .12em; font-variant-numeric: tabular-nums; }
-  .case-index-rail__panel button:hover, .case-index-rail__panel button:focus-visible { background: rgba(73,196,177,.08); color: var(--white); outline: none; }
-  .case-index-rail__panel button.is-current { color: var(--teal-bright); }
-  .case-index-rail__panel button.is-current span { color: var(--teal); }
+  .spine-rail { position: fixed; z-index: 40; left: clamp(16px, 2.2vw, 34px); top: 50%; display: block; opacity: 0; pointer-events: none; transform: translateY(-50%); transition: opacity .45s ease; }
+  .spine-rail.is-visible { opacity: 1; pointer-events: auto; }
+  .spine-rail__line { position: absolute; left: 3px; top: 4px; bottom: 4px; width: 1px; background: rgba(133,179,182,.2); }
+  .spine-rail__line i { position: absolute; inset: 0; background: linear-gradient(180deg, var(--teal-bright), var(--teal)); box-shadow: 0 0 8px rgba(33,230,211,.5); transform: scaleY(var(--rail-progress, 0)); transform-origin: top; }
+  .spine-rail__nodes { position: relative; display: flex; flex-direction: column; gap: 1.45rem; margin: 0; padding: 0; list-style: none; }
+  .spine-rail__nodes button { display: flex; align-items: center; gap: .85rem; padding: 0; border: 0; background: transparent; color: #5d7276; font: inherit; font-size: .64rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: color .25s ease; }
+  .spine-rail__nodes button i { position: relative; z-index: 1; flex: 0 0 auto; width: 7px; height: 7px; border: 1px solid rgba(133,179,182,.45); border-radius: 50%; background: #050d10; transition: width .3s cubic-bezier(.2,.75,.25,1), height .3s cubic-bezier(.2,.75,.25,1), background .3s ease, border-color .3s ease, box-shadow .3s ease; }
+  .spine-rail__nodes button span { opacity: 0; transform: translateX(-6px); transition: opacity .3s ease, transform .3s cubic-bezier(.2,.75,.25,1); }
+  .spine-rail__nodes button.is-passed i { border-color: rgba(73,196,177,.6); background: rgba(73,196,177,.45); }
+  .spine-rail__nodes button.is-current { color: var(--teal-bright); }
+  .spine-rail__nodes button.is-current i { width: 11px; height: 11px; margin-left: -2px; border-color: var(--teal-bright); background: var(--teal-bright); box-shadow: 0 0 0 3px rgba(33,230,211,.14), 0 0 12px rgba(33,230,211,.55); }
+  .spine-rail__nodes button.is-current span { opacity: 1; transform: none; animation: storyHudSwap .45s cubic-bezier(.2,.75,.25,1); }
+  .spine-rail:is(:hover, :focus-within) .spine-rail__nodes button span { opacity: 1; transform: none; }
+  .spine-rail__nodes button:hover, .spine-rail__nodes button:focus-visible { color: var(--white); outline: none; }
+  .spine-rail__nodes button:hover i { border-color: var(--teal-bright); }
+  .spine-rail__nodes button:focus-visible i { outline: 2px solid var(--teal-bright); outline-offset: 3px; }
+}
+/* Below this the labels would sit on top of the content, so only the current one is named. */
+@media (min-width: 1081px) and (max-width: 1300px) {
+  .spine-rail:is(:hover, :focus-within) .spine-rail__nodes button:not(.is-current) span { opacity: 0; transform: translateX(-6px); }
 }
 /* Click-to-zoom for case-study screenshots (components/CaseImageZoom.tsx). */
 .case-visual[data-zoom-ready] { cursor: zoom-in; }
@@ -797,13 +829,6 @@ html.zoom-open .image-zoom__caption { opacity: 1; }
 .route-transition img { width: 56px; filter: drop-shadow(0 0 24px rgba(33,230,211,.32)); }
 @keyframes routeSweep { 0% { transform: translateX(-100%); } 70%,100% { transform: translateX(0); } }
 :focus-visible { outline: 2px solid var(--teal-bright); outline-offset: 4px; }
-
-@media (min-width: 1081px) and (prefers-reduced-motion: no-preference) {
-  .horizontal-story.is-horizontal-ready { width: 100%; height: 100svh; overflow: hidden; }
-  .horizontal-story.is-horizontal-ready .horizontal-story__track { display: flex; width: max-content; height: 100%; will-change: transform; }
-  .horizontal-story.is-horizontal-ready .section { flex: 0 0 100vw; width: 100vw; height: 100svh; min-height: 100svh; display: flex; align-items: center; padding: clamp(4.5rem, 8vh, 7rem) 0; }
-  .horizontal-story.is-horizontal-ready .section > .shell { width: var(--shell); }
-}
 
 @media (min-width: 960px) {
   .hero h1 { white-space: nowrap; }
